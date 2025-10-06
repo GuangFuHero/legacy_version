@@ -1,0 +1,1 @@
+celery -A src.message_queue_processor worker --loglevel=info --concurrency=4
