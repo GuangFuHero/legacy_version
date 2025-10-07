@@ -1,0 +1,26 @@
+# Environment files
+.env.hurl
+.env
+
+# Test results and reports
+*.log
+*.html
+*.xml
+test-results/
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
