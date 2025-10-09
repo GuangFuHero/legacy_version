@@ -25,9 +25,9 @@ class RecordFetcher:
 
         processed_ids = self._get_processed_ids()
         queue_ids = self._get_queue_ids()
-        
+
         filtered_ids = processed_ids | queue_ids
-        
+
         new_records = []
         skipped_count = 0
 
@@ -58,20 +58,21 @@ class RecordFetcher:
         """取得所有在 queue 中的記錄 ID"""
         try:
             queue_ids = set()
-            
+
             queue_processor = self.queue_checker.__self__
             queue_items = queue_processor.redis.lrange(queue_processor.queue_name, 0, -1)
-            
+
             for item in queue_items:
                 try:
                     import json
+
                     record = json.loads(item)
                     record_id = record.get("id")
                     if record_id:
                         queue_ids.add(record_id)
                 except (json.JSONDecodeError, KeyError):
                     continue
-                    
+
             return queue_ids
         except Exception as e:
             logger.error(f"取得 queue 記錄 ID 時發生錯誤: {e}")

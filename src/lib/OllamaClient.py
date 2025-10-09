@@ -7,7 +7,10 @@ import dotenv
 import ollama
 from pydantic import BaseModel
 
-from src.prompt.system_prompts import validate_humanresource_prompt, validate_supplies_prompt
+from src.prompt.system_prompts import (
+    validate_humanresource_prompt,
+    validate_supplies_prompt,
+)
 
 if TYPE_CHECKING:
     from .GfApiClient import HumanResource, Supplies
@@ -35,9 +38,9 @@ class OllamaClient:
     def get_validation_result(self, message: "HumanResource | Supplies", resource_type: str) -> ValidationResult:
         """發送請求到 Ollama"""
         system_prompt = self.get_system_prompt(resource_type)
-        
+
         message_dict = message.model_dump() if hasattr(message, "model_dump") else message
-        
+
         response = self.ollama_client.chat(
             model=self.ollama_model,
             messages=[

@@ -1,4 +1,5 @@
 import logging
+from functools import partial
 from typing import Callable
 
 import redis
@@ -50,7 +51,7 @@ class Scheduler:
             logger.info(f"[定時任務 - {self.resource_type}] 首次執行，開始載入所有記錄...")
 
             if self.resource_type == "human_resource":
-                get_method = self.gf_api_client.get_all_human_resources 
+                get_method = self.gf_api_client.get_all_human_resources
             else:
                 get_method = self.gf_api_client.get_all_supplies
 
@@ -69,7 +70,7 @@ class Scheduler:
             if self.resource_type == "human_resource":
                 get_method = self.gf_api_client.get_human_resource
             elif self.resource_type == "supplies":
-                get_method = lambda limit, offset: self.gf_api_client.get_supplies(limit, offset, embed="all")
+                get_method = partial(self.gf_api_client.get_supplies, embed="all")
 
             new_records = self.fetcher.fetch_new_records(get_method, limit=limit, offset=offset)
 

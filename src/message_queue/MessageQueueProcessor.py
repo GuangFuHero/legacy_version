@@ -86,7 +86,7 @@ class MessageQueueProcessor:
                 if result:
                     _, record_json = result
                     record_dict = json.loads(record_json)
-                    
+
                     if "human_resource" in self.queue_name:
                         record = HumanResource(**record_dict)
                     elif "supplies" in self.queue_name:
@@ -94,7 +94,7 @@ class MessageQueueProcessor:
                     else:
                         logger.error(f"未知的 queue_name: {self.queue_name}")
                         continue
-                    
+
                     record_id = record.id
 
                     logger.info(f"從 queue 取出記錄: {record_id}")

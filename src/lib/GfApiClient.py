@@ -23,6 +23,7 @@ class Supplies(BaseModel):
 
     class SupplyItem(BaseModel):
         """物資項目"""
+
         name: str
         unit: str
 

@@ -8,7 +8,11 @@ import redis
 import schedule
 
 from lib import GfApiClient, GoogleSheetHandler, OllamaClient
-from message_queue import MessageQueueProcessor, ProcessedRecordTracker, Scheduler
+from message_queue import (
+    MessageQueueProcessor,
+    ProcessedRecordTracker,
+    Scheduler,
+)
 from wokers import RecordFetcher, RecordProcessor
 
 logger = logging.getLogger(__name__)

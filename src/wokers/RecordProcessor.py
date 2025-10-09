@@ -1,6 +1,13 @@
 import logging
 
-from lib import GfApiClient, GoogleSheetHandler, OllamaClient, HumanResource, Supplies
+from lib import (
+    GfApiClient,
+    GoogleSheetHandler,
+    HumanResource,
+    OllamaClient,
+    Supplies,
+    ValidationResult,
+)
 from message_queue import ProcessedRecordTracker
 
 logger = logging.getLogger(__name__)
