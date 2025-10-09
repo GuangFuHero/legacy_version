@@ -30,10 +30,10 @@ class MessageQueueProcessor:
         self.tracker = ProcessedRecordTracker(self.redis)
         self.is_running = False
 
-    def fetch_new_records(self, limit: int = 10) -> list[HumanResource]:
+    def fetch_new_records(self, limit: int = 0, offset: int = 0) -> list[HumanResource]:
         """抓取最新的幾筆資料，過濾已處理和已在 queue 中的記錄"""
         try:
-            response = self.gf_api_client.get_human_resource(limit=limit, offset=0)
+            response = self.gf_api_client.get_human_resource(limit=limit, offset=offset)
 
             new_records: list[HumanResource] = []
             skipped_count = 0
@@ -54,7 +54,7 @@ class MessageQueueProcessor:
                 new_records.append(record)
 
             logger.info(
-                f"抓取到 {len(new_records)} 筆新資料（共檢查 {limit} 筆，跳過 {skipped_count} 筆）"
+                f"抓取到 {len(new_records)} 筆新資料（共檢查 {len(response)} 筆，跳過 {skipped_count} 筆）"
             )
             return new_records
 
@@ -142,6 +142,11 @@ class MessageQueueProcessor:
                             self.upload_record_to_google_sheet(
                                 record, validation_result, sheet_name
                             )
+                            if not validation_result.valid:
+                                self.gf_api_client.submit_spam_judgment(
+                                    record_id, "human_resource", record, 
+                                    validation_result.valid, validation_result.reason
+                                )
                         else:
                             logger.error(f"記錄 {record_id} 驗證失敗")
 
@@ -198,10 +203,10 @@ class MessageQueueProcessor:
             "last_processed_id": self.tracker.get_last_processed_id(),
         }
 
-    def scheduled_fetch(self, limit: int = 10):
+    def scheduled_fetch(self, limit: int = 10, offset: int = 0):
         """定時抓取任務"""
         logger.info(f"[定時任務] 開始抓取最新 {limit} 筆資料...")
-        new_records = self.fetch_new_records(limit=limit)
+        new_records = self.fetch_new_records(limit=limit, offset=offset)
 
         if new_records:
             self.add_to_queue(new_records)

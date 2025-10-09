@@ -16,6 +16,11 @@ class HumanResource(BaseModel):
     role_name: str
     assignment_notes: str
 
+class Supplies(BaseModel):
+    id: str
+    name: str
+    address: str
+    notes: str
 
 class GfApiClient:
     """負責與 GF API 進行互動"""
@@ -41,42 +46,113 @@ class GfApiClient:
         """基礎請求"""
         if use_auth:
             headers = headers or {}
-            headers.setdefault("Authorization", f"Bearer {self.gf_api_key}")
+            headers.setdefault("x-api-key", self.gf_api_key)
         response = self.session.request(method, url, headers=headers, params=params, json=body)
         return response.json()
 
-    def get_human_resource(self, limit: int, offset: int) -> list[HumanResource]:
-        """取得最新幾筆人力資源"""
-        all_records: list[HumanResource] = []
+    def get_all_human_resources(self) -> list[HumanResource]:
+        """取得所有人力資源"""
+        all_resources: list[HumanResource] = []
+        offset = 0
+        batch_size = 100
+        
+        while True:
+            response = self.base_request(
+                "GET",
+                f"{self.gf_api_baseurl}/human_resources",
+                params={"limit": batch_size, "offset": offset},
+                use_auth=False,
+            )
+            
+            total_items = response.get("totalItems", 0)
+            if total_items == 0:
+                break
+                
+            members = response.get("member", [])
+            if not members:
+                break
+                
+            for item in members:
+                all_resources.append(HumanResource(**item))
+            
+            offset += len(members)
+            
+            if offset >= total_items:
+                break
+        
+        logger.info(f"Total human resources fetched: {len(all_resources)}")
+        return all_resources
+
+    def get_resources(
+        self,
+        endpoint: str,
+        model_class: type[BaseModel],
+        limit: int,
+        offset: int,
+        use_auth: bool = False,
+    ) -> list[BaseModel]:
+        """通用的資源取得方法
+        
+        Args:
+            endpoint: API 端點路徑（例如 "human_resources", "supplies"）
+            model_class: Pydantic model 類別（例如 HumanResource, Supplies）
+            limit: 限制筆數
+            offset: 偏移量
+            use_auth: 是否使用認證
+            
+        Returns:
+            解析後的 model 列表
+        """
+        all_records: list[BaseModel] = []
 
         response = self.base_request(
             "GET",
-            f"{self.gf_api_baseurl}/human_resources",
+            f"{self.gf_api_baseurl}/{endpoint}",
             params={"limit": limit, "offset": offset},
-            use_auth=False,
+            use_auth=use_auth,
         )
 
-        if response["totalItems"] == 0:
+        if response.get("totalItems", 0) == 0:
             return []
 
-        for member in response["member"]:
-            filtered_member = HumanResource(**member)
-            all_records.append(filtered_member)
+        for item in response.get("member", []):
+            filtered_item = model_class(**item)
+            all_records.append(filtered_item)
 
-        logger.info(f"Total items fetched: {len(all_records)}/{response['totalItems']}")
+        logger.info(f"Total items fetched from {endpoint}: {len(all_records)}/{response['totalItems']}")
 
         return all_records
 
-    def post_human_resource(self, id: str, body: dict):
-        """更新人力資源"""
-        response = self.session.post(
-            f"{self.gf_api_baseurl}/human_resources/{id}",
-            json=body,
+    def get_human_resource(self, limit: int, offset: int) -> list[HumanResource]:
+        """取得最新幾筆人力資源"""
+        return self.get_resources("human_resources", HumanResource, limit, offset, use_auth=False)
+    
+    
+    
+    def get_supplies(self, limit: int, offset: int) -> list[Supplies]:
+        """取得物資資料"""
+        return self.get_resources("supplies", Supplies, limit, offset, use_auth=False)
+    
+    def submit_spam_judgment(self, target_id: str, target_type: str, target_data: dict, is_spam: bool, judgment: str) -> None:
+        """提交 spam 判斷結果"""
+        self.base_request(
+            "POST",
+            f"{self.gf_api_baseurl}/spam_results",
+            body={
+                "target_id": target_id,
+                "target_type": target_type,
+                "target_data": target_data,
+                "is_spam": is_spam,
+                "judgment": judgment
+            },
+            use_auth=True
         )
-        return response.json()
+        logger.info(f"Submitted spam judgment for {target_id} of type {target_type}")
 
 
 if __name__ == "__main__":
     gf_api_client = GfApiClient()
-    records = gf_api_client.get_human_resource(limit=10, offset=0)
-    print(records)
+    human_resources = gf_api_client.get_human_resource(limit=10, offset=0)
+    supplies = gf_api_client.get_supplies(limit=10, offset=0)
+    print(human_resources)
+    print(supplies)

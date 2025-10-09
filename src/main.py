@@ -2,11 +2,15 @@ import logging
 from logging.handlers import RotatingFileHandler
 import schedule
 import time
+import os
+import dotenv
 
 from message_queue import MessageQueueProcessor
 from lib import OllamaClient, GfApiClient, GoogleSheetHandler
 
 logger = logging.getLogger(__name__)
+
+dotenv.load_dotenv()
 
 rotating_file_handler = RotatingFileHandler(
     "logs/main.log", maxBytes=5 * 1024 * 1024, backupCount=5, encoding="utf-8"
@@ -20,11 +24,11 @@ logging.basicConfig(
 
 
 def run_message_queue_processor(
-    processor: MessageQueueProcessor, interval_minutes: int = 1, fetch_limit: int = 50
+    processor: MessageQueueProcessor, interval_minutes: int = 1, offset: int = 0, fetch_limit: int = 50
 ):
     """執行 Redis message queue 處理器"""
 
-    schedule.every(interval_minutes).minutes.do(processor.scheduled_fetch, limit=fetch_limit)
+    schedule.every(interval_minutes).minutes.do(processor.scheduled_fetch, limit=fetch_limit, offset=offset)
 
     logger.info(
         f"Redis Message Queue 排程器已設定：每 {interval_minutes} 分鐘抓取 {fetch_limit} 筆資料"
@@ -49,7 +53,7 @@ def run_message_queue_processor(
         processor.stop()
 
 
-def main():
+if __name__ == "__main__":
     """主程式 - 使用 Message Queue"""
 
     validator = OllamaClient()
@@ -63,13 +67,12 @@ def main():
         google_sheet_handler=google_sheet_handler,
     )
 
+    fetch_limit = int(os.getenv("FETCH_LIMIT", 50))
+    offset = int(os.getenv("OFFSET", 0))
+
     try:
-        run_message_queue_processor(processor, interval_minutes=1, fetch_limit=10)
+        run_message_queue_processor(processor, interval_minutes=1, offset=offset, fetch_limit=fetch_limit)
     except KeyboardInterrupt:
         logger.info("收到中斷信號")
     finally:
         processor.stop()
-
-
-if __name__ == "__main__":
-    main()

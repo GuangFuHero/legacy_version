@@ -1,5 +1,5 @@
 [project]
-name = "eval-by-llm"
+name = "spam-blocker"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
