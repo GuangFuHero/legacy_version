@@ -1,4 +1,8 @@
 <template>
+  <div class="outter-header">
+    因應災區需求減少，媒合功能將於 <span style="color: #D34746">10/30</span> 關閉，<br />
+    若有物資需求，請至 <a href="https://gf250923.org/map" target="_parent" style="color: #179BC6">地圖頁</a> 導航物資站
+  </div>
   <div class="app-shell">
     <header class="page-header">
       <div class="header-left">
@@ -1865,6 +1869,13 @@ html {
   color: #fff;
   border-radius: 0 0 24px 24px;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.outter-header {
+  background: #E8F5F9;
+  padding: 12px 20px;
+  font-weight: 500;
+  text-align: center;
 }
 
 .header-left {
