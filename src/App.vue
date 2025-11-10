@@ -1,28 +1,37 @@
 <template>
   <div class="outter-header">
-    因應災區需求減少，媒合功能將於 <span style="color: #ef5756">10/30</span> 關閉，<br />
-    若有物資需求，請至 <a href="https://gf250923.org/map" target="_parent" style="color: #36c1ef">地圖頁</a> 導航物資站
+    因應災區需求減少，媒合功能將於
+    <span style="color: #ef5756">10/30</span> 關閉，<br />
+    若有物資需求，請至
+    <a href="https://gf250923.org/map" target="_parent" style="color: #36c1ef"
+      >地圖頁</a
+    >
+    導航物資站
   </div>
   <div class="app-shell">
     <header class="page-header">
-      <div class="header-left">
-        <h1>我要配送</h1>
-      </div>
-      <div class="header-right">
-        <el-button
-          class="create-btn"
-          type="primary"
-          :icon="Plus"
-          @click="openCreate"
-        >
-          新增配送需求
-        </el-button>
-        <div class="header-note">
-          <div style="padding-left: 12px;">⚠ 此表單為蜜蜂配給媒合用，捐物資請寄：</div>
-          <ul style="margin: 6px 0 0 0">
-            <li>糖廠「大倉」- 縣府 0937909124 花蓮縣光復鄉糖廠街18號</li>
-          </ul>
+      <div class="header-main">
+        <div class="header-left">
+          <h1>我要配送</h1>
         </div>
+        <div class="header-right">
+          <el-button
+            class="create-btn"
+            type="primary"
+            :icon="Plus"
+            @click="openCreate"
+          >
+            新增配送需求
+          </el-button>
+        </div>
+      </div>
+      <div class="header-note">
+        <div style="padding-left: 12px">
+          ⚠ 此表單為蜜蜂配給媒合用，捐物資請寄：
+        </div>
+        <ul style="margin: 6px 0 0 0">
+          <li>糖廠「大倉」- 縣府 0937909124 花蓮縣光復鄉糖廠街18號</li>
+        </ul>
       </div>
     </header>
 
@@ -100,7 +109,6 @@
               </div>
 
               <div v-show="!isCompletedCollapsed(req)" class="card-body">
-
                 <!-- Disable showing supply provider info as no one would write data currently -->
 
                 <!--
@@ -455,7 +463,7 @@
           <h3>需求項目<span class="required">*</span></h3>
         </div>
 
-        <span class="hint with-icon" style="margin: 0;">
+        <span class="hint with-icon" style="margin: 0">
           <el-icon><WarningFilled /></el-icon>
           便當需求請註明時間 -「便當 (10/23午餐)」
         </span>
@@ -772,7 +780,9 @@ import {
 } from "@element-plus/icons-vue";
 
 const USE_NEW_API = true;
-const API_BASE_URL = (USE_NEW_API)? "https://api.gf250923.org" : "https://guangfu250923.pttapp.cc";
+const API_BASE_URL = USE_NEW_API
+  ? "https://api.gf250923.org"
+  : "https://guangfu250923.pttapp.cc";
 
 const TYPE_MAP = {
   "食物/水": { label: "飲食", order: 0, color: "#14b8a6" },
@@ -1384,8 +1394,7 @@ const transformApiData = (apiData) =>
 const transformSupplyProviders = (providers) =>
   (Array.isArray(providers) ? providers : [])
     .filter(
-      (provider) =>
-        provider != null && !isNeedIgnoreNote(provider.notes ?? "")
+      (provider) => provider != null && !isNeedIgnoreNote(provider.notes ?? "")
     )
     .map((provider, index) => ({
       id: provider.id || `provider-${index}`,
@@ -1411,7 +1420,10 @@ const transformSupplyProviders = (providers) =>
 
 const parseSupplyProvidersResponse = (data) => {
   if (!data) return [];
-  if (((!data["@type"]) || (data["@type"] === "Collection")) && Array.isArray(data.member)) {
+  if (
+    (!data["@type"] || data["@type"] === "Collection") &&
+    Array.isArray(data.member)
+  ) {
     return transformSupplyProviders(data.member);
   }
   if (Array.isArray(data)) {
@@ -1529,7 +1541,11 @@ const transformToApiData = (frontendData) => {
 const isNeedIgnoreNote = (value) => {
   if (value === null || value === undefined) return false;
   const normalized = `${value}`.trim().toLowerCase();
-  return normalized === "test" || normalized === "測試" || normalized === "need_delete";
+  return (
+    normalized === "test" ||
+    normalized === "測試" ||
+    normalized === "need_delete"
+  );
 };
 
 const parseApiResponse = (data) => {
@@ -1543,7 +1559,10 @@ const parseApiResponse = (data) => {
       offset: 0,
     };
   }
-  if (((!data["@type"]) || (data["@type"] === "Collection")) && Array.isArray(data.member)) {
+  if (
+    (!data["@type"] || data["@type"] === "Collection") &&
+    Array.isArray(data.member)
+  ) {
     return {
       items: transformApiData(data.member),
       next: data.next ?? null,
@@ -1581,7 +1600,7 @@ const normalizeNextUrl = (url) => {
 const fetchRequests = async ({ append = false } = {}) => {
   if (loading.value || loadingMore.value) return;
 
-  const baseUrl = (USE_NEW_API)
+  const baseUrl = USE_NEW_API
     ? `${API_BASE_URL}/supplies?limit=50&offset=0`
     : `${API_BASE_URL}/supplies?embed=all&limit=50&offset=0`;
   const targetUrl = append ? normalizeNextUrl(nextPageUrl.value) : baseUrl;
@@ -1640,7 +1659,10 @@ const fetchRequests = async ({ append = false } = {}) => {
 
 const createRequest = async (payload) => {
   // First, create the supply with the first item
-  const firstItemData = transformToApiData({ ...payload, items: [payload.items[0]] });
+  const firstItemData = transformToApiData({
+    ...payload,
+    items: [payload.items[0]],
+  });
   const firstResponse = await fetch(`${API_BASE_URL}/supplies`, {
     method: "POST",
     headers: {
@@ -1658,7 +1680,7 @@ const createRequest = async (payload) => {
 
   const firstResponseData = await firstResponse.json();
   const supplyId = firstResponseData.id;
-  const valid_pin = firstResponseData.valid_pin?? "";
+  const valid_pin = firstResponseData.valid_pin ?? "";
 
   if (!supplyId) {
     throw new Error("無法取得物資 ID");
@@ -1858,12 +1880,22 @@ html {
 
 .page-header {
   display: flex;
-  justify-content: space-around;
   align-items: center;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 12px;
   padding: 24px;
   border-radius: 0 0 24px 24px;
+  background-color: #20314b;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header-main {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
 .outter-header {
@@ -1873,12 +1905,15 @@ html {
   font-weight: 500;
   text-align: center;
   cursor: default;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-left {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  color: #fff;
 }
 
 .header-right {
