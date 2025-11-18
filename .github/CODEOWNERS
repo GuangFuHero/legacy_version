@@ -1,0 +1,13 @@
+# ========================================
+# CODEOWNERS for GuangFuHero legacy_version monorepo
+# ========================================
+
+# ---------- FRONTEND ----------
+/frontend/guangfu-hero-web/        @GuangFuHero/frontend
+/frontend/hualien-bees/            @GuangFuHero/frontend
+/frontend/volunteers-archived/     @GuangFuHero/frontend
+
+# ---------- BACKEND ----------
+/backend/api-server/               @GuangFuHero/backend
+/backend/api-tests/                @GuangFuHero/backend
+/backend/spam-blocker/             @GuangFuHero/backend
