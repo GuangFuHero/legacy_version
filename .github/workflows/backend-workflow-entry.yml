@@ -1,0 +1,23 @@
+# .github/workflows/backend-api-entry.yaml
+name: Backend Workflow Entry
+
+on:
+  push:
+    branches: [ develop, main ]
+    tags:
+      - "v*.*.*"
+    paths:
+      - "backend/api-server/**"
+  pull_request:
+    branches: [ develop, main ]
+    paths:
+      - "backend/api-server/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  call-backend:
+    uses: ./backend/api-server/.github/workflows/cicd.yaml
+    secrets: inherit
