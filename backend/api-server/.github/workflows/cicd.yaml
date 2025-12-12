@@ -3,22 +3,12 @@ permissions:
   contents: read
 
 on:
-  workflow_call:
-    secrets:
-      POSTGRES_PASSWORD:
-        required: true
-      ALLOW_MODIFY_API_KEY_LIST:
-        required: true
-      LINE_CLIENT_ID:
-        required: false
-      LINE_CLIENT_SECRET:
-        required: false
-      DISCORD_WEBHOOK_URL:
-        required: false
-      VM_HOST:
-        required: true
-      DEPLOY_SSH_KEY:
-        required: false
+  push:
+    branches:
+      - develop
+      - main
+    tags:
+      - "v*.*.*"
 
 jobs:
   init:
@@ -30,8 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Determine environment and version
         id: set_env
