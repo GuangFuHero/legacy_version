@@ -3,12 +3,33 @@ permissions:
   contents: read
 
 on:
-  push:
-    branches:
-      - develop
-      - main
-    tags:
-      - "v*.*.*"
+  workflow_call:
+    inputs:
+      branches:
+        description: Branches to allow deployment from
+        required: false
+        type: string
+        default: "develop,main"
+      service_path:
+        description: Backend service path
+        required: false
+        type: string
+        default: backend/api-server
+    secrets:
+      VM_HOST:
+        required: true
+      DEPLOY_SSH_KEY:
+        required: true
+      POSTGRES_PASSWORD:
+        required: true
+      ALLOW_MODIFY_API_KEY_LIST:
+        required: false
+      LINE_CLIENT_ID:
+        required: false
+      LINE_CLIENT_SECRET:
+        required: false
+      DISCORD_WEBHOOK_URL:
+        required: false
 
 jobs:
   init:
@@ -23,34 +44,33 @@ jobs:
 
       - name: Determine environment and version
         id: set_env
+        shell: bash
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          REF="${{ github.ref }}"
+          echo "Current ref: ${REF}"
+
+          if [[ "${REF}" == "refs/heads/develop" ]]; then
             echo "environment=dev" >> $GITHUB_OUTPUT
             echo "version=develop" >> $GITHUB_OUTPUT
             echo "should_deploy=true" >> $GITHUB_OUTPUT
-            echo "Deploying to dev environment: develop branch"
-          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          elif [[ "${REF}" == "refs/heads/main" ]]; then
             echo "environment=prod" >> $GITHUB_OUTPUT
             echo "version=latest" >> $GITHUB_OUTPUT
             echo "should_deploy=true" >> $GITHUB_OUTPUT
-            echo "Deploying to production environment: main branch"
-          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            # Verify tag is on main branch
-            git fetch origin main
+          elif [[ "${REF}" == refs/tags/* ]]; then
+            git fetch origin main --depth=1
             TAG_COMMIT=$(git rev-parse HEAD)
-            if ! git merge-base --is-ancestor $TAG_COMMIT origin/main; then
+            if ! git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
               echo "Error: Tag must be created from main branch"
               echo "should_deploy=false" >> $GITHUB_OUTPUT
               exit 1
             fi
-            VERSION=${GITHUB_REF#refs/tags/}
-            echo "environment=production" >> $GITHUB_OUTPUT
+            VERSION=${REF#refs/tags/}
+            echo "environment=prod" >> $GITHUB_OUTPUT
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
             echo "should_deploy=true" >> $GITHUB_OUTPUT
-            echo "Deploying to production environment: ${VERSION}"
           else
             echo "should_deploy=false" >> $GITHUB_OUTPUT
-            echo "No deployment needed for this ref"
           fi
 
   deploy:
